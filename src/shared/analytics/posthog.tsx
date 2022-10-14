@@ -1,7 +1,5 @@
 import {v4 as uuidv4} from 'uuid';
 
-export const POSTHOG_API_KEY = process.env.POSTHOG_API_KEY
-
 const retrievedUUID = typeof window !== 'undefined' ? localStorage.getItem('UUID') : null
 
 interface HogEventProp {
@@ -27,6 +25,7 @@ export function posthogEvent(eventName:string) {
     if (retrievedUUID) {
       document.cookie = "UUID=" + retrievedUUID;
       createEvent(eventName)
+      console.log("UUID:", retrievedUUID)
     }
 
     //If not present, generate a new one and put it in storage.
@@ -35,6 +34,7 @@ export function posthogEvent(eventName:string) {
       let myuuid = uuidv4();
       localStorage.setItem('UUID', myuuid);
       document.cookie = "UUID=" + myuuid;
+      console.log("new UUID:", myuuid)
       createEvent(eventName)
     }
   }
@@ -48,9 +48,7 @@ export async function createEvent(eventName:string): Promise<HogResponse> {
     const response = await fetch("https://app.posthog.com/capture/", {
       method: "POST",
       body: JSON.stringify({
-        // this is a safe public write only api key
-        // roll this key for demo
-        api_key: POSTHOG_API_KEY,
+        api_key: "phc_VzveyNxrn2xyiKDYn7XjrgaqELGeUilDZGiBVh6jNmh",
         event: posthogEvent,
         properties: {
           distinct_id: retrievedUUID,
@@ -69,13 +67,12 @@ export async function createEvent(eventName:string): Promise<HogResponse> {
       throw new Error(`Error! status: ${response.status}`)
     }
     const result = (await response.json()) as HogResponse
-    // eslint-disable-next-line no-console
 
     return result
   } catch (error) {
     if (error instanceof Error) {
       return Promise.reject(error.message)
-    } // eslint-disable-next-line no-console
+    }
     return Promise.reject(console.log("unexpected error: "))
   }
 }
